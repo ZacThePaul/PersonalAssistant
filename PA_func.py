@@ -1,5 +1,11 @@
 import requests
 from bs4 import BeautifulSoup
+import sqlite3
+
+sqlite_file = 'assistant.sqlite'
+conn = sqlite3.connect(sqlite_file)
+c = conn.cursor()
+
 
 
 def cnn(keyword, sites):
@@ -75,3 +81,66 @@ def fox(keyword, sites):
 
     if len(titlefound) == 0:
         print('Whoops! Sorry about that, it looks like your search came up empty!')
+
+
+def headlinescanner():
+
+    NPR = ['NPR', 'npr', 'Npr', 'n.p.r.']
+    CNN = ['CNN', 'cnn', 'C.N.N.']
+    FOX = ['fox', 'FOX', 'Fox']
+
+    keyword = input('What are you looking for?')
+    sites = input('What website would you like to pull from?')
+
+    if sites in NPR:
+        P.npr(keyword, sites)
+    elif sites in CNN:
+        P.cnn(keyword, sites)
+    elif sites in FOX:
+        P.fox(keyword, sites)
+
+
+def birthday(dob):
+    cdob = dob.split('-')
+    year = cdob[0]
+    month = cdob[1]
+    day = cdob[2]
+    return month, day, year
+
+def bdayformat(cuser_dob):
+    if cuser_dob[0] == '06':
+        return 'June'
+
+def user_age(cuser_dob):
+    from datetime import date
+    import datetime
+    now = datetime.datetime.now()
+    f_date = date(int(cuser_dob[2]), int(cuser_dob[0]), int(cuser_dob[1]))
+    l_date = date(now.year, now.month, now.day)
+    delta = l_date - f_date
+    years = delta.total_seconds()
+    cyears = years / 31557600
+    return cyears
+
+#  SQLITE FUNCTIONS
+
+
+def create_assistant():
+
+    c.execute("CREATE TABLE IF NOT EXISTS assistant (named INTEGER, assistant_name VARCHAR )")
+
+def create_user():
+
+    c.execute("CREATE TABLE IF NOT EXISTS user (name VARCHAR, dob INTEGER)")  # for dob it is yyyy-mm-dd
+
+def name_user(name, dob):
+    c.execute('INSERT INTO user VALUES (?,?)', (name, dob),)
+    conn.commit()
+
+def name_assistant(name):
+    c.execute('INSERT INTO assistant VALUES (?, ?)', (1, name),)
+    conn.commit()
+
+
+
+
