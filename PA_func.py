@@ -1,11 +1,62 @@
 import requests
 from bs4 import BeautifulSoup
 import sqlite3
+import time as t
 
 sqlite_file = 'assistant.sqlite'
 conn = sqlite3.connect(sqlite_file)
 c = conn.cursor()
 
+
+def greeting():
+    assistant_name = ''
+
+    hello()  # runs the greeting sequence
+
+    assistant_name += input('First, let\'s give me a name. What is my name? > ')
+    # pf.create_assistant()
+    name_assistant(name=assistant_name)
+    t.sleep(2)
+    print('...')
+    t.sleep(2)
+
+    print('{}.. What an excellent name! I once knew a {}.\n'.format(assistant_name, assistant_name))
+    user_name = input('What name do you go by?')
+    t.sleep(.5)
+    print(user_name, 'got it.')
+    user_dob = input('What is your Date of Birth? (yyyy-mm-dd) > ')
+    cuser_dob = birthday(user_dob)
+    bdaymonth = bdayformat(cuser_dob)
+    user_age_ = user_age(cuser_dob)
+    print('Okay you were born in', bdaymonth, 'of', cuser_dob[2],
+          ', which makes you {} years old.'.format(int(user_age_)))
+    create_user()
+    name_user(user_name, user_dob)
+    #  Find the user's zip code and use it for weather
+    user_location_ = input('{}, please give me your city, '
+                           'state/province and zip code separated by commas'.format(user_name))
+    u_location = user_location_.split(',')
+    locate_user(u_location[0], u_location[1], u_location[2])
+    print('Okay {}, so you live in {}{} and your zip code is {}'.format(user_name, u_location[0], u_location[1],
+                                                                        u_location[2]))
+
+
+def hello():
+    print('...')
+    t.sleep(2)
+    initialize = ['Initiating startup sequence', ' ...', ' ...']
+    for i in initialize:
+        print(i, end='', flush=True)
+        t.sleep(1)
+    t.sleep(1)
+    print('\n...')
+    t.sleep(1)
+    print('\n \n|| Welcome to your Personal Assistant ||')
+    print(
+        'I am a Python program written by ZacThePaul. If you have questions about my mind, at any prompt please enter \'iMind\'.')
+    print('You will be given a link to Github where my brains are stored!')
+    print('\nPlease take some time to chat with me, so I can get to know you.')
+    t.sleep(1)
 
 
 def cnn(keyword, sites):
@@ -107,9 +158,14 @@ def birthday(dob):
     day = cdob[2]
     return month, day, year
 
+
 def bdayformat(cuser_dob):
-    if cuser_dob[0] == '06':
-        return 'June'
+    months = {'01': 'January', '02': 'February', '03': 'March', '04': 'April', '05': 'May', '06': 'June', '07': 'July',
+              '08': 'August', '09': 'September', '10': 'October', '11': 'November', '12': 'December'}
+    for i in months:
+        if cuser_dob[0] == i:
+            return months[i]
+
 
 def user_age(cuser_dob):
     from datetime import date
@@ -122,25 +178,48 @@ def user_age(cuser_dob):
     cyears = years / 31557600
     return cyears
 
-#  SQLITE FUNCTIONS
+
+def user_weather():
+    city = c.execute('SELECT city FROM user').fetchall()[0][0]
+    state = c.execute('SELECT state FROM user').fetchall()[0][0]
+    zip = str(c.execute('SELECT zip_code FROM user').fetchall()[0][0])
+    url = 'https://www.wunderground.com/weather/us/' + state + '/' + city + '/' + zip
+    r = requests.get(url)
+    soup = BeautifulSoup(r.text, "html.parser")
+    temp = soup.find_all('span', {'class': 'wu-value wu-value-to'})
+
+    return temp[0].text
+
+
+def user_location(user_name):
+    uloc = c.execute('SELECT city, state, country FROM user WHERE name = (?);', (user_name,))
+    return uloc
+
+
+#  SQLITE FUNCTIONS  #
 
 
 def create_assistant():
 
     c.execute("CREATE TABLE IF NOT EXISTS assistant (named INTEGER, assistant_name VARCHAR )")
 
-def create_user():
-
-    c.execute("CREATE TABLE IF NOT EXISTS user (name VARCHAR, dob INTEGER)")  # for dob it is yyyy-mm-dd
-
-def name_user(name, dob):
-    c.execute('INSERT INTO user VALUES (?,?)', (name, dob),)
-    conn.commit()
 
 def name_assistant(name):
     c.execute('INSERT INTO assistant VALUES (?, ?)', (1, name),)
     conn.commit()
 
 
+def create_user():
 
+    c.execute("CREATE TABLE IF NOT EXISTS user (name VARCHAR, dob INTEGER, city VARCHAR, state VARCHAR, zip_code INTEGER)")  # for dob it is yyyy-mm-dd
+
+
+def name_user(name, dob):
+    c.execute('INSERT INTO user VALUES (?,?, ?, ?, ?)', (name, dob, 0, 0, 0),)
+    conn.commit()
+
+
+def locate_user(town, province, zip):
+    c.execute('UPDATE user SET city = (?), state = (?), zip_code = (?)', (town, province, zip),)
+    conn.commit()
 
