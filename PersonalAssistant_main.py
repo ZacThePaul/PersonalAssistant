@@ -1,35 +1,28 @@
 # NOTES *
-# add personal stocks
-# TURN THIS INTO A PERSONAL ASSISTANT
+
 
 import PA_func as pf
 import sqlite3
 import assistant_gui
 
 sqlite_file = 'assistant.sqlite'
-conn = sqlite3.connect(sqlite_file)
+conn = sqlite3.connect(sqlite_file)  # instantiating a connection to the sqlite database
 c = conn.cursor()
 
-pf.create_assistant()
+pf.create_assistant()  # creates the assistant table in the sqlite database if it's not already there
+
 if len(c.execute('SELECT assistant_name FROM assistant ').fetchall()) == 0:
-    pf.greeting()
+    assistant_gui.start_gui()  # if the assistant table is empty, it runs the greeting
 
 elif len(c.execute('SELECT assistant_name FROM assistant ').fetchall()) != 0:
     name = c.execute('SELECT assistant_name FROM assistant ').fetchall()[0][0]  # These zeroes are to remove parenthesis
     named = c.execute('SELECT named FROM assistant ').fetchall()[0]
     username = c.execute('SELECT name FROM  user').fetchall()[0][0]
     temp = pf.user_weather()
-    city = c.execute('SELECT  city FROM user').fetchall()[0][0]
-    gui = assistant_gui.gui(username, city, temp)
+    city = c.execute('SELECT city FROM user').fetchall()[0][0]
+    #  if the assistant table is not empty, it instantiates all information in it (above)
 
-    gui()
-
-    # print('Hi there {}, nice to see you again.'.format(username))
-    # print('It looks like the temperature in your area is {} degrees right now'.format(temp))
-    # if int(temp) < 40:
-    #     print('little chilly, eh?')
-    # elif int(temp) > 90:
-    #     print('time for some AC')
+    assistant_gui.main_gui(username, city, temp)
 
 # c.execute('DROP TABLE assistant')
 # c.execute('DROP TABLE user')

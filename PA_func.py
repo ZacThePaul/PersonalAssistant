@@ -8,39 +8,6 @@ conn = sqlite3.connect(sqlite_file)
 c = conn.cursor()
 
 
-def greeting():
-    assistant_name = ''
-
-    hello()  # runs the greeting sequence
-
-    assistant_name += input('First, let\'s give me a name. What is my name? > ')
-    # pf.create_assistant()
-    name_assistant(name=assistant_name)
-    t.sleep(2)
-    print('...')
-    t.sleep(2)
-
-    print('{}.. What an excellent name! I once knew a {}.\n'.format(assistant_name, assistant_name))
-    user_name = input('What name do you go by?')
-    t.sleep(.5)
-    print(user_name, 'got it.')
-    user_dob = input('What is your Date of Birth? (yyyy-mm-dd) > ')
-    cuser_dob = birthday(user_dob)
-    bdaymonth = bdayformat(cuser_dob)
-    user_age_ = user_age(cuser_dob)
-    print('Okay you were born in', bdaymonth, 'of', cuser_dob[2],
-          ', which makes you {} years old.'.format(int(user_age_)))
-    create_user()
-    name_user(user_name, user_dob)
-    #  Find the user's zip code and use it for weather
-    user_location_ = input('{}, please give me your city, '
-                           'state/province and zip code separated by commas'.format(user_name))
-    u_location = user_location_.split(',')
-    locate_user(u_location[0], u_location[1], u_location[2])
-    print('Okay {}, so you live in {}{} and your zip code is {}'.format(user_name, u_location[0], u_location[1],
-                                                                        u_location[2]))
-
-
 def hello():
     print('...')
     t.sleep(2)
@@ -211,15 +178,29 @@ def name_assistant(name):
 
 def create_user():
 
-    c.execute("CREATE TABLE IF NOT EXISTS user (name VARCHAR, dob INTEGER, city VARCHAR, state VARCHAR, zip_code INTEGER)")  # for dob it is yyyy-mm-dd
+    c.execute("CREATE TABLE IF NOT EXISTS user (name VARCHAR, dob INTEGER, city VARCHAR, state VARCHAR, zip_code VARCHAR)")  # for dob it is yyyy-mm-dd
 
 
-def name_user(name, dob):
-    c.execute('INSERT INTO user VALUES (?,?, ?, ?, ?)', (name, dob, 0, 0, 0),)
+def name_user(name):
+    c.execute('INSERT INTO user VALUES (?, ?, ?, ?, ?)', (name, 0, 0, 0, 0),)
     conn.commit()
 
 
-def locate_user(town, province, zip):
-    c.execute('UPDATE user SET city = (?), state = (?), zip_code = (?)', (town, province, zip),)
+def user_dob(dob):
+    c.execute('UPDATE user SET dob = (?)', (dob,))
     conn.commit()
 
+
+def locate_user_city(town):
+    c.execute('UPDATE user SET city = (?)', (town,),)
+    conn.commit()
+
+
+def locate_user_state(state):
+    c.execute('UPDATE user SET state = (?)', (state,),)
+    conn.commit()
+
+
+def locate_user_zip(zip):
+    c.execute('UPDATE user SET zip_code = (?)', (zip,))
+    conn.commit()
